@@ -116,6 +116,7 @@ COMMON_SOURCES=syscalls.s    \
 							 vdp_text_mode.s \
 							 sn76489.s       \
 							 midi.s          \
+							 gamepad.s     \
 							 tty.s           \
 							 parse.s         \
 							 menu.s
