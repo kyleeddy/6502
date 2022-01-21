@@ -183,7 +183,7 @@ vdp_text_mode_register_inits_end:
 
 vdp_graphics1_mode_register_inits:
 vdp_graphics1_mode_register_0: .byte VDP_REG0_EXTERNAL_VDP_DISABLE | VDP_REG_0_GRAPHICS_MODE_II_DISABLE
-vdp_graphics1_mode_register_1: .byte VDP_REG1_RAM_16K | VDP_REG1_GRAPHICS_MODE_I_ENABLE | VDP_REG1_SCREEN_BLANK | VDP_REG1_INTERRUPT_ENABLE
+vdp_graphics1_mode_register_1: .byte VDP_REG1_RAM_16K | VDP_REG1_GRAPHICS_MODE_I_ENABLE | VDP_REG1_SCREEN_BLANK | VDP_REG1_INTERRUPT_ENABLE | VDP_REG_1_SPRITE_SIZE_16x16 |VDP_REG_1_SPRITE_MAG_1X
 vdp_graphics1_mode_register_2: .byte VDP_REG2_NAME_TABLE_BASE_0000
 vdp_graphics1_mode_register_3: .byte VDP_REG3_COLOR_TABLE_BASE_0400
 vdp_graphics1_mode_register_4: .byte VDP_REG4_PATTERN_TABLE_BASE_0800

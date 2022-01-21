@@ -25,6 +25,7 @@ last_controller_input: .res 1
 vPos: .res 1
 hPos: .res 1
 blink_stat: .res 1
+frame: .res 1
 
 
 screen_buffer:
@@ -57,7 +58,13 @@ init:
       lda #100
       sta vPos
       sta hPos
+
+      lda #0
+      sta frame
+
       jsr position_sprite
+
+
 
       lda VDP_REG
       cli
@@ -71,10 +78,12 @@ program_loop:
 
       lda #'$'
       jsr _tty_send_character
-      txa  
+;      txa  
+      lda frame
       jsr _tty_write_hex
       jsr _tty_send_newline
 
+      txa
       sta last_controller_input
 
       bit #NESPAD_UP
@@ -96,6 +105,16 @@ program_loop:
 ;      jsr position_sprite            
 
 done:
+
+      lda frame
+      clc
+      adc #4
+      cmp #12
+      bne :+
+      lda #0
+:
+      sta frame
+
       ;lda VDP_REG
       jmp program_loop
 
@@ -107,10 +126,10 @@ load_sprite:
 
       ldx #0
 :
-      lda sprite,x
+      lda sprite2,x
       sta VDP_VRAM
       inx
-      cpx #(sprite_table_end - sprite)
+      cpx #(sprite_table_end - sprite2)
       bne :-
 
       plx
@@ -128,7 +147,7 @@ load_sprite:
       lda hPos
       sta VDP_VRAM
 
-      lda #0 
+      lda frame 
       sta VDP_VRAM
 
       lda #($00 | (VDP_COLOR_BLACK & VDP_COLOR_MASK_LOW_NIBBLE))
@@ -161,19 +180,37 @@ irq_handler:
       .segment "RODATA"
 
 hello_msg:
-      .byte "01234567890123456789012345678901", $00
+      .byte "Graphics Test 1", $00
 
-sprite:
-      .byte %01111110
-      .byte %10000001
-      .byte %10100101
-      .byte %10000001
-      .byte %10100101
-      .byte %10011101
-      .byte %10000001
-      .byte %01111110
-sprite_table_end:
-      .byte %01010101
+; sprite:
+;       .byte %01111110
+;       .byte %10000001
+;       .byte %10100101
+;       .byte %10000001
+;       .byte %10100101
+;       .byte %10011101
+;       .byte %10000001
+;       .byte %01111110
+; sprite_table_end:
+;       .byte %01010101
 
 
+sprite2:
+     .byte   $01, $03, $02, $05, $84, $7A, $01, $0E
+     .byte   $12, $21, $23, $13, $02, $02, $0C, $0C
+     .byte   $20, $90, $CC, $44, $04, $48, $B0, $40
+     .byte   $80, $80, $C0, $C0, $20, $20, $30, $30
 
+
+sprite3:
+     .byte   $01, $03, $02, $05, $04, $FA, $01, $0E
+     .byte   $12, $21, $23, $13, $02, $02, $0C, $08
+     .byte   $20, $90, $CC, $44, $04, $48, $B0, $40
+     .byte   $80, $80, $C0, $C0, $20, $20, $30, $18
+
+sprite4:
+     .byte   $01, $03, $02, $05, $04, $7A, $81, $0E
+     .byte   $12, $21, $23, $13, $02, $02, $03, $06
+     .byte   $20, $90, $CC, $44, $04, $48, $B0, $40
+     .byte   $80, $80, $C0, $C0, $20, $20, $60, $60
+sprite_table_end:  
