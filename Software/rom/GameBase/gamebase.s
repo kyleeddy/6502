@@ -12,6 +12,9 @@
       .include "zeropage.inc"
 
 VDP_NAME_TABLE_BASE = $0000
+SCREEN1 = VDP_REG2_NAME_TABLE_BASE_0000
+SCREEN2 = VDP_REG2_NAME_TABLE_BASE_2000 ; can just toggle bit 3
+
 
       .segment "VECTORS"
       .word   $0000
@@ -27,9 +30,15 @@ hPos: .res 1
 blink_stat: .res 1
 frame: .res 1
 
+windowXOffset: .res 1
+windowYOffset: .res 1
+currentScreenSelect: .res 1
+objTemp: .res 1 ; move to zp
+
 
 screen_buffer:
-      .res 768      
+      .res 768 
+
 
       .code
 
@@ -61,10 +70,14 @@ init:
 
       lda #0
       sta frame
+      sta windowXOffset
+      sta windowYOffset
 
       jsr position_sprite
 
-
+      jsr ClearScreenBuffer
+      jsr LoadObjectsToBuffer
+      jsr CopyBufferToVRAM
 
       lda VDP_REG
       cli
@@ -173,10 +186,189 @@ irq_handler:
 
 
 
+ClearScreenBuffer: 
+   .scope 
+    pha
+    phx
+    phy
+
+    lda #<screen_buffer
+    sta vdp_buffer_address
+    lda #>screen_buffer
+    sta vdp_buffer_address + 1 
+
+    ldy #0         ; count locations
+    ldx #3         ; count pages
+    lda #$20 
+    
+    ; load a page at a time
+clear_next:      
+    sta (vdp_buffer_address),Y
+    iny
+    bne clear_next
+    inc vdp_buffer_address+1
+
+    dex
+    bne clear_next
+
+    ply
+    plx
+    pla
+
+    rts
+    .endscope
+
+;
+; Load all Objects to Screen Buffer
+; Based on current Window Position
+;
+LoadObjectsToBuffer:
+    .scope 
+    pha
+    phx
+    phy
+
+    ;
+    ; Check each Object and add
+    ; to Buffer if within Window
+    ;
+    ldx #0
+
+checkObject:       
+
+    txa 
+    jsr _tty_write_hex 
+    lda #$20
+    jsr _tty_send_character   
+    ;jsr _tty_send_newline
+
+    cpx #(ObjectTableEnd - ObjectTable)
+    bpl done
+
+    ; Check X Position in screen Window
+    lda ObjectTable,X 
+    clc
+    sbc windowXOffset
+    bmi nextObject3
+
+    cmp #32
+    bpl nextObject3
+
+    sta objTemp
+
+    inx 
+    ; Check Y Position in screen Window
+    lda ObjectTable,X
+    clc
+    sbc windowYOffset
+    bmi nextObject2
+
+    cmp #24
+    bpl nextObject2
+
+    ldy #0
+    ;
+    ; Object is Onscreen; save to Buffer
+    ;
+    asl
+    asl
+    asl
+    ; these last two could carry
+    asl
+    bcc :+
+    iny
+:
+    asl
+    bcc :+
+    iny  
+:    
+    ; add buffser start to offset  
+    clc
+    adc #<screen_buffer
+    sta vdp_buffer_address
+    tya
+    adc #>screen_buffer
+    sta vdp_buffer_address+1
+
+
+    ;
+    ; Get and write pattern
+    ;
+    inx ; point to pattern
+    lda ObjectTable, x
+
+    ldy objTemp
+    sta (vdp_buffer_address), Y
+
+
+    bra nextObject1
+
+nextObject3:
+    inx
+nextObject2:
+    inx
+nextObject1:
+    inx
+
+    bra checkObject
+
+done:
+    ply
+    plx
+    pla
+    rts
+    .endscope
+
+;
+; Copy Full Screen Buffer to VRAM
+;
+CopyBufferToVRAM:
+.scope  
+    pha
+    phx
+    phy
+
+    vdp_set_vram_addr VDP_NAME_TABLE_BASE
+
+    lda #<screen_buffer
+    sta vdp_vram_address 
+
+    lda #>screen_buffer 
+    sta vdp_vram_address+1
+
+    ldy #0
+    ldx #3
+  
+next_loc:
+
+    lda (vdp_vram_address),y
+    sta VDP_VRAM
+    iny
+    bne next_loc
+
+    inc vdp_vram_address+1
+    dex
+    bne next_loc
+
+    ply
+    plx
+    pla
+    rts
+.endscope
+
+
+
       .segment "RODATA"
 
 hello_msg:
       .byte "Graphics Test 1", $00
+
+testmsg1:
+      .byte "Test Point 1", $00
+
+testmsg2:
+      .byte "Test Point 2", $00
+
 
 ; sprite:
 ;       .byte %01111110
@@ -210,3 +402,15 @@ sprite4:
      .byte   $20, $90, $CC, $44, $04, $48, $B0, $40
      .byte   $80, $80, $C0, $C0, $20, $20, $60, $60
 sprite_table_end:  
+
+ObjectTable:
+    .byte 0, 0, $30     ; 0
+    .byte 1, 1, $31     ; 1
+    .byte 4, 4, $32     ; 2
+    .byte 10, 0, $33    ; 3
+    .byte 0, 10, $34    ; 4
+    .byte 20, 20, $35   ; 5
+    .byte 31, 0, $36    ; 6
+    .byte 31, 23, $37   ; 7
+ObjectTableEnd:    
+    .byte $00
