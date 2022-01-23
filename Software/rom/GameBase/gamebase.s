@@ -235,8 +235,17 @@ LoadObjectsToBuffer:
     ldx #0
 
 checkObject:       
+
+      txa
+      jsr _tty_write_hex 
+      lda #$20
+      jsr _tty_send_character   
+      lda #(ObjectTableEnd - ObjectTable)
+      jsr _tty_write_hex 
+      jsr _tty_send_newline
+
     cpx #(ObjectTableEnd - ObjectTable)
-    bpl done
+    beq done
 
     ; Check X Position in screen Window
     lda ObjectTable,X 
@@ -290,6 +299,7 @@ checkObject:
     asl
     bcc :+
     iny
+    iny ; extra +1 to simulate a shift into the 2's place
 :
     asl
     bcc :+
@@ -303,16 +313,13 @@ checkObject:
     adc #>screen_buffer
     sta vdp_buffer_address+1
 
-
     ;
     ; Get and write pattern
     ;
     inx ; point to pattern
     lda ObjectTable, x
-
     ldy objTemp
     sta (vdp_buffer_address), Y
-
 
     bra nextObject1
 
@@ -417,13 +424,36 @@ sprite4:
 sprite_table_end:  
 
 ObjectTable:
-    .byte 0, 0, $30     ; 0
-    .byte 1, 1, $31     ; 1
-    .byte 4, 4, $32     ; 2
-    .byte 10, 0, $33    ; 3
-    .byte 0, 10, $34    ; 4
-    .byte 20, 20, $35   ; 5
-    .byte 31, 0, $36    ; 6
-    .byte 31, 23, $37   ; 7
+;     .byte 0, 0, '0'
+;     .byte 5, 5, '1'
+;     .byte 10, 10, '2'
+;     .byte 15, 15, '3'
+;     .byte 20, 20, '4'
+;     .byte 23, 23, '5'
+;     .byte 31, 23, '6'
+      .byte   0, 0, 48, 31, 0, 48, 5, 0, 48
+      .byte   0, 1, 49, 31, 1, 49, 6, 1, 49
+      .byte   0, 2, 50, 31, 2, 50, 7, 2, 50
+      .byte   0, 3, 51, 31, 3, 51, 8, 3, 51
+      .byte   0, 4, 52, 31, 4, 52, 9, 4, 52
+      .byte   0, 5, 53, 31, 5, 53, 10, 5, 53
+      .byte   0, 6, 54, 31, 6, 54, 11, 6, 54
+      .byte   0, 7, 55, 31, 7, 55, 12, 7, 55
+      .byte   0, 8, 56, 31, 8, 56, 13, 8, 56
+      .byte   0, 9, 57, 31, 9, 57, 14, 9, 57
+      .byte   0, 10, 48, 31, 10, 48, 15, 10, 48
+      .byte   0, 11, 49, 31, 11, 49, 16, 11, 49
+      .byte   0, 12, 50, 31, 12, 50, 17, 12, 50
+      .byte   0, 13, 51, 31, 13, 51, 18, 13, 51
+      .byte   0, 14, 52, 31, 14, 52, 19, 14, 52
+      .byte   0, 15, 53, 31, 15, 53, 20, 15, 53
+      .byte   0, 16, 54, 31, 16, 54, 21, 16, 54
+      .byte   0, 17, 55, 31, 17, 55, 22, 17, 55
+      .byte   0, 18, 56, 31, 18, 56, 23, 18, 56
+      .byte   0, 19, 57, 31, 19, 57, 24, 19, 57
+      .byte   0, 20, 48, 31, 20, 48, 25, 20, 48
+      .byte   0, 21, 49, 31, 21, 49, 26, 21, 49
+      .byte   0, 22, 50, 31, 22, 50, 27, 22, 50
+      .byte   0, 23, 51, 31, 23, 51, 28, 23, 51
 ObjectTableEnd:    
     .byte $00
