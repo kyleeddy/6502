@@ -235,36 +235,49 @@ LoadObjectsToBuffer:
     ldx #0
 
 checkObject:       
-
-    txa 
-    jsr _tty_write_hex 
-    lda #$20
-    jsr _tty_send_character   
-    ;jsr _tty_send_newline
-
     cpx #(ObjectTableEnd - ObjectTable)
     bpl done
 
     ; Check X Position in screen Window
     lda ObjectTable,X 
-    clc
+
+;     jsr _tty_write_hex 
+;     lda #$3A
+;     jsr _tty_send_character      
+
+    sec
     sbc windowXOffset
     bmi nextObject3
+
+;     jsr _tty_write_hex 
+;     lda #$20
+;     jsr _tty_send_character     
 
     cmp #32
     bpl nextObject3
 
     sta objTemp
 
+        
+;     jsr _tty_write_hex 
+;     lda #$3A
+;     jsr _tty_send_character   
+;     ;jsr _tty_send_newline
+
     inx 
     ; Check Y Position in screen Window
     lda ObjectTable,X
-    clc
+    sec
     sbc windowYOffset
     bmi nextObject2
 
     cmp #24
     bpl nextObject2
+
+;     jsr _tty_write_hex 
+;     lda #$20
+;     jsr _tty_send_character   
+;     jsr _tty_send_newline
 
     ldy #0
     ;
