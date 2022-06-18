@@ -115,16 +115,6 @@ program_loop:
 :
 
 done:
-
-      lda frame
-      clc
-      adc #4
-      cmp #12
-      bne :+
-      lda #0
-:
-      sta frame
-
       jmp program_loop
 
 load_sprite:      
@@ -180,6 +170,15 @@ irq_handler:
       jsr _blink_led
       lda #BLINK_LED_OFF
       jsr _blink_led
+
+      lda frame
+      clc
+      adc #4
+      cmp #12
+      bne :+
+      lda #0
+:
+      sta frame
 
       pla
       rti
