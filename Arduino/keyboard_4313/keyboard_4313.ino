@@ -414,13 +414,17 @@ void PS2Keyboard::begin(uint8_t data_pin, uint8_t irq_pin, const PS2Keymap_t &ma
 }
 
 
-const int DATA_PIN_4313 = 0;
-const int IRQ_PIN_4313 =  4;
+//const int DATA_PIN_4313 = 0;
+const int DATA_PIN_4313 = 1;
+//const int IRQ_PIN_4313 =  4;
+const int IRQ_PIN_4313 =  5;
 
 const char DATA[] = {9, 10, 11, 12, 13, 14, 15, 16};
 
-#define HS_DATA_TAKEN 5
-#define HS_DATA_READY 1
+//#define HS_DATA_TAKEN 5
+#define HS_DATA_TAKEN 6
+//#define HS_DATA_READY 1
+#define HS_DATA_READY 4
 
 #define KEYBOARD_CONNECTION_SIGNAL 0xff
 #define KEYBOARD_DISCONNECTION_SIGNAL 0xfe
